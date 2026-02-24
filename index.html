@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Loading</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: #0f0f0f;
+  }
+
+  canvas {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    display: block;
+    background: transparent;
+  }
+
+  .shooting-stars {
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    overflow: hidden;
+  }
+
+  .shooting-stars span {
+    position: absolute;
+    width: 220px;
+    height: 2.5px;
+    background: linear-gradient(90deg, #ffffff, #e0e0e0, transparent);
+    border-radius: 999px;
+    box-shadow: 0 0 40px rgba(255,255,255,0.4), 0 0 15px rgba(255,255,255,0.6);
+    opacity: 0;
+    animation: shoot var(--dur, 5s) ease-in-out infinite var(--delay, 0s);
+  }
+
+  @keyframes shoot {
+    0%   { transform: translateX(0)      translateY(0)      rotate(-45deg); opacity: 1; }
+    25%  { transform: translateX(-900px) translateY(900px)  rotate(-45deg); opacity: 0; }
+    100% { opacity: 0; }
+  }
+
+  .shooting-stars span:nth-child(1)  { top:  0%;  left: 95%; --delay: 0s;    --dur: 5s;   }
+  .shooting-stars span:nth-child(2)  { top:  0%;  left: 70%; --delay: 1.5s;  --dur: 6s;   }
+  .shooting-stars span:nth-child(3)  { top: 10%;  left:108%; --delay: 3s;    --dur: 5.5s; }
+  .shooting-stars span:nth-child(4)  { top:  0%;  left: 45%; --delay: 4.5s;  --dur: 6.5s; }
+  .shooting-stars span:nth-child(5)  { top: 25%;  left:105%; --delay: 1s;    --dur: 5.8s; }
+  .shooting-stars span:nth-child(6)  { top:  0%;  left: 20%; --delay: 6s;    --dur: 5.2s; }
+  .shooting-stars span:nth-child(7)  { top: 40%;  left:110%; --delay: 2.5s;  --dur: 7s;   }
+  .shooting-stars span:nth-child(8)  { top:  5%;  left: 82%; --delay: 5s;    --dur: 5.6s; }
+  .shooting-stars span:nth-child(9)  { top: 55%;  left:106%; --delay: 0.5s;  --dur: 6.2s; }
+  .shooting-stars span:nth-child(10) { top:  0%;  left: 58%; --delay: 7s;    --dur: 5s;   }
+  .shooting-stars span:nth-child(11) { top: 20%;  left: 92%; --delay: 3.5s;  --dur: 6.8s; }
+  .shooting-stars span:nth-child(12) { top:  0%;  left: 33%; --delay: 8s;    --dur: 5.4s; }
+</style>
+</head>
+<body>
+
+<canvas id="c"></canvas>
+
+<div class="shooting-stars">
+  <span></span><span></span><span></span><span></span>
+  <span></span><span></span><span></span><span></span>
+  <span></span><span></span><span></span><span></span>
+</div>
+
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+const W = canvas.width;
+const H = canvas.height;
+
+function makeRNG(seed) {
+  let s = seed >>> 0;
+  return () => {
+    s ^= s << 13; s ^= s >> 17; s ^= s << 5;
+    return (s >>> 0) / 0xffffffff;
+  };
+}
+const rng = makeRNG(99999);
+
+const NUM_DOTS = 40;
+const dots = [];
+for (let i = 0; i < NUM_DOTS; i++) {
+  dots.push({
+    x: rng() * W,
+    y: rng() * H,          // start spread across screen
+    r: 0.7 + rng() * 1.1,
+    opacity: 0.3 + rng() * 0.5,
+    speed: 0.2 + rng() * 0.5, // slow upward drift
+  });
+}
+
+function tick() {
+  ctx.clearRect(0, 0, W, H);
+
+  for (const d of dots) {
+    d.y -= d.speed;
+
+    // Reset to bottom when off top
+    if (d.y < -5) {
+      d.y = H + 5;
+      d.x = rng() * W;
+    }
+
+    ctx.beginPath();
+    ctx.arc(d.x, d.y, d.r, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(255,255,255,${d.opacity})`;
+    ctx.fill();
+  }
+
+  requestAnimationFrame(tick);
+}
+
+requestAnimationFrame(tick);
+
+window.addEventListener('resize', () => {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+});
+</script>
+</body>
+</html>
